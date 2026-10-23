@@ -1,0 +1,41 @@
+{
+  "name": "live-1024",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "POLYV 1024 - basic live flow: teacher push (browser) -> watch page",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "engines": {
+    "node": ">=20.10.0"
+  },
+  "scripts": {
+    "dev": "concurrently -n server,pusher,watch -c blue,magenta,cyan \"npm:dev:server\" \"npm:dev:pusher\" \"npm:dev:watch\"",
+    "dev:server": "npm run dev -w @live1024/server",
+    "dev:pusher": "npm run dev -w @live1024/pusher",
+    "dev:watch": "npm run dev -w @live1024/watch",
+    "build": "npm run build -w @live1024/server && npm run build -w @live1024/pusher && npm run build -w @live1024/watch",
+    "start": "npm run start:prod -w @live1024/server",
+    "typecheck": "npm run typecheck -w @live1024/shared && npm run typecheck -w @live1024/server && npm run typecheck -w @live1024/pusher && npm run typecheck -w @live1024/watch",
+    "lint": "eslint .",
+    "test": "vitest run",
+    "test:e2e": "playwright test"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.39.1",
+    "@playwright/test": "^1.56.1",
+    "@vitejs/plugin-vue": "^6.0.1",
+    "@vitest/coverage-v8": "^3.2.4",
+    "@vue/test-utils": "^2.4.6",
+    "concurrently": "^9.2.1",
+    "eslint": "^9.39.1",
+    "eslint-plugin-vue": "^10.5.0",
+    "globals": "^16.4.0",
+    "jsdom": "^27.0.0",
+    "typescript": "^5.9.3",
+    "typescript-eslint": "^8.46.1",
+    "vitest": "^3.2.4"
+  }
+}

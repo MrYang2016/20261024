@@ -1,0 +1,343 @@
+/*
+ * live-1024 共享视觉基线（token + 原生基准形态）
+ * 取值来自 docs/execution-plan.md §八 与「视觉修订 v2」（v2 与 v1 冲突处以 v2 为准）：
+ * - 文字色改固定色值（不再用白色 alpha，避免对比度随底色漂移）
+ * - 表面改实色面板层级（bg → panel → panel-raised）+ 面板顶部高光
+ * - 字阶上移：正文/控件 16、辅助 14、卡片标题 20、页面标题 24、指标数字 30
+ * - 品牌蓝家族全局唯一色相；主按钮实底 #2F63E0（白字 5.27:1）、hover 压深 #2A57C7（白字 6.39:1，
+ *   不提亮——提亮会把对比度打回 3.2:1）、焦点环 #7CA0FF、链接 #5A8BFF（D19）；
+ *   直播中/推流中沿用语义红 #ff6264（D15）
+ */
+
+:root {
+  color-scheme: dark;
+
+  /* 表面（v2 §3）：实色面板层级 + 顶部 1px 高光，不用白色 alpha 叠加 */
+  --color-bg: #08090c;
+  --color-panel: #14171e;
+  --color-panel-raised: #1b1f27;
+  --color-border: rgba(255, 255, 255, 0.14);
+  --color-border-strong: rgba(255, 255, 255, 0.22);
+  --shadow-panel: 0 8px 24px rgba(0, 0, 0, 0.45);
+  --shadow-raised: 0 2px 8px rgba(0, 0, 0, 0.35);
+  --panel-highlight: linear-gradient(180deg, rgba(255, 255, 255, 0.06), transparent 40%);
+  /* 压在视频画面上的芯片底：不透明深底，文字对比度不随画面内容漂移 */
+  --color-overlay: rgba(8, 9, 12, 0.86);
+
+  /* 文字（v2 §2）：固定色值，四档 */
+  --color-text-1: #ffffff;
+  --color-text-2: #b9c2d0;
+  --color-text-3: #8a94a6;
+  --color-text-4: #5c6472;
+
+  /* 品牌与语义色（v2 §4，语义色与 ① 同源，不新增色相）
+     品牌蓝按用途分档（D19）：实底按钮用深档保证白字 ≥4.5:1，链接/焦点环仍用亮档 */
+  --color-brand: #2f63e0;
+  --color-brand-hover: #2a57c7;
+  --color-brand-soft: rgba(47, 99, 224, 0.12);
+  --color-link: #5a8bff;
+  --color-focus: #7ca0ff;
+  --color-danger: #ff6264;
+  --color-danger-soft: rgba(255, 98, 100, 0.14);
+  --color-danger-ink: #1a0607;
+  --color-success: #23aa4f;
+  --color-warning: #ff9f45;
+
+  /* 字体：系统字体栈，不引网络字体 */
+  --font-family: 'PingFang SC', 'Microsoft YaHei', 'Helvetica Neue', Helvetica, sans-serif;
+  /* 字阶（v2 §1）：官方主阶 12/14/16 + 展示档 20/24/30 */
+  --font-size-12: 12px;
+  --font-size-14: 14px;
+  --font-size-16: 16px;
+  --font-size-20: 20px;
+  --font-size-24: 24px;
+  --font-size-30: 30px;
+  /* 行高 = 字号 + 8（12 档例外取 18） */
+  --line-height-18: 18px;
+  --line-height-22: 22px;
+  --line-height-26: 26px;
+  --line-height-30: 30px;
+  --line-height-34: 34px;
+  --line-height-38: 38px;
+  --font-weight-normal: 400;
+  --font-weight-medium: 500;
+  --font-weight-strong: 600;
+
+  /* 8 网格 */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-12: 48px;
+
+  /* 圆角：控件 8 / 容器 12 / 强调块 16（v2 §5 预览区圆角 16） */
+  --radius-control: 8px;
+  --radius-container: 12px;
+  --radius-emphasis: 16px;
+  --radius-pill: 999px;
+
+  /* 尺度（v2 §1 / §5） */
+  --page-max-width: 1200px;
+  --page-gutter: var(--space-8);
+  --control-height: 40px;
+  --control-height-primary: 44px;
+  --metric-font-size: 30px;
+  --metric-unit-font-size: 14px;
+  --transition-fast: 0.2s ease;
+  --pulse-duration: 1.6s;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --transition-fast: 0s;
+  }
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  min-height: 100%;
+}
+
+body {
+  background: var(--color-bg);
+  color: var(--color-text-1);
+  font-family: var(--font-family);
+  font-size: var(--font-size-16);
+  line-height: var(--line-height-26);
+  -webkit-font-smoothing: antialiased;
+}
+
+h1,
+h2,
+h3,
+p {
+  margin: 0;
+}
+
+/* 链接取品牌蓝的亮档（实底档 #2F63E0 在面板底只有 3.40:1，作正文不达 AA；
+   #5A8BFF 在面板底 5.61:1） */
+a {
+  color: var(--color-link);
+  text-decoration: none;
+  transition: color var(--transition-fast);
+}
+
+a:hover {
+  color: color-mix(in srgb, var(--color-link) 60%, #fff);
+  text-decoration: underline;
+}
+
+/* 焦点环自绘：覆盖全部可点控件 + 表单控件，不依赖浏览器默认。
+   3px offset 让环与控件之间透出页面底，环对相邻色的对比度不依赖控件自身色。 */
+:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 3px;
+}
+
+/* ---- 面板卡（v2 §3）：实色底 + 顶部高光 + 投影 ---- */
+.panel {
+  border-radius: var(--radius-container);
+  border: 1px solid var(--color-border);
+  background-color: var(--color-panel);
+  background-image: var(--panel-highlight);
+  box-shadow: var(--shadow-panel);
+}
+
+/* ---- 状态芯片（v2 §4）：状态=色块 + 文案 + 圆点，不只靠颜色 ---- */
+.status-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-height: 30px;
+  padding: 0 var(--space-3);
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--color-border);
+  background-color: var(--color-overlay);
+  font-size: var(--font-size-14);
+  line-height: var(--line-height-22);
+  color: var(--color-text-2);
+  white-space: nowrap;
+}
+
+.status-chip__dot {
+  flex: none;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+/* 直播中 / 推流中：红底 14% 填充 + 红点 + 白字（不是灰底红字） */
+.status-chip[data-tone='live'] {
+  border-color: color-mix(in srgb, var(--color-danger) 55%, transparent);
+  background-color: var(--color-panel);
+  background-image: linear-gradient(var(--color-danger-soft), var(--color-danger-soft));
+  color: var(--color-text-1);
+}
+
+.status-chip[data-tone='live'] .status-chip__dot {
+  background: var(--color-danger);
+  animation: chip-pulse var(--pulse-duration) ease-in-out infinite;
+}
+
+.status-chip[data-tone='pending'],
+.status-chip[data-tone='warning'] {
+  border-color: color-mix(in srgb, var(--color-warning) 50%, transparent);
+  background-color: var(--color-panel);
+  background-image: linear-gradient(
+    color-mix(in srgb, var(--color-warning) 12%, transparent),
+    color-mix(in srgb, var(--color-warning) 12%, transparent)
+  );
+  color: var(--color-text-1);
+}
+
+.status-chip[data-tone='pending'] .status-chip__dot,
+.status-chip[data-tone='warning'] .status-chip__dot {
+  background: var(--color-warning);
+}
+
+.status-chip[data-tone='danger'] {
+  color: var(--color-danger);
+}
+
+@keyframes chip-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.3;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .status-chip[data-tone='live'] .status-chip__dot {
+    animation: none;
+    opacity: 1;
+  }
+}
+
+/* ---- 原生控件基准形态（降级链第 3 级） ---- */
+button {
+  font-family: inherit;
+  font-size: var(--font-size-16);
+  line-height: var(--line-height-26);
+  font-weight: var(--font-weight-normal);
+  min-height: var(--control-height);
+  padding: 0 var(--space-4);
+  border-radius: var(--radius-control);
+  border: 1px solid var(--color-border);
+  background: var(--color-panel-raised);
+  color: var(--color-text-1);
+  cursor: pointer;
+  transition:
+    background-color var(--transition-fast),
+    border-color var(--transition-fast),
+    color var(--transition-fast);
+  white-space: nowrap;
+}
+
+button:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--color-panel-raised) 86%, #fff);
+  border-color: var(--color-border-strong);
+}
+
+button:disabled {
+  cursor: not-allowed;
+  color: var(--color-text-4);
+  border-color: var(--color-border);
+  background: transparent;
+}
+
+button[data-variant='primary'] {
+  min-height: var(--control-height-primary);
+  padding: 0 var(--space-6);
+  background: var(--color-brand);
+  border-color: var(--color-brand);
+  color: #fff;
+  font-weight: var(--font-weight-medium);
+}
+
+button[data-variant='primary']:hover:not(:disabled) {
+  background: var(--color-brand-hover);
+  border-color: var(--color-brand-hover);
+}
+
+button[data-variant='primary']:disabled {
+  background: color-mix(in srgb, var(--color-brand) 40%, var(--color-panel));
+  border-color: transparent;
+  color: var(--color-text-2);
+}
+
+button[data-variant='danger'] {
+  min-height: var(--control-height-primary);
+  padding: 0 var(--space-6);
+  background: var(--color-danger);
+  border-color: var(--color-danger);
+  color: var(--color-danger-ink);
+  font-weight: var(--font-weight-medium);
+}
+
+button[data-variant='danger']:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--color-danger) 88%, #fff);
+  border-color: color-mix(in srgb, var(--color-danger) 88%, #fff);
+}
+
+select,
+input[type='text'] {
+  font-family: inherit;
+  font-size: var(--font-size-16);
+  line-height: var(--line-height-26);
+  min-height: var(--control-height);
+  padding: 0 var(--space-3);
+  border-radius: var(--radius-control);
+  border: 1px solid var(--color-border);
+  background: var(--color-panel-raised);
+  color: var(--color-text-1);
+  max-width: 100%;
+  transition:
+    border-color var(--transition-fast),
+    background-color var(--transition-fast);
+}
+
+select:hover:not(:disabled),
+input[type='text']:hover:not(:disabled) {
+  border-color: var(--color-border-strong);
+}
+
+select:disabled,
+input[type='text']:disabled {
+  color: var(--color-text-4);
+  cursor: not-allowed;
+}
+
+input[type='text']::placeholder {
+  color: var(--color-text-3);
+}
+
+/* 指标数字等宽，防跳动 */
+.numeric {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: 'tnum';
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}

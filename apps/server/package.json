@@ -1,0 +1,26 @@
+{
+  "name": "@live1024/server",
+  "version": "1.0.0",
+  "private": true,
+  "description": "live-1024 API server (NestJS): create channel, push credentials, live status",
+  "scripts": {
+    "dev": "nest start --watch",
+    "build": "nest build",
+    "start:prod": "node dist/main.js",
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  },
+  "dependencies": {
+    "@nestjs/common": "^11.1.6",
+    "@nestjs/core": "^11.1.6",
+    "@nestjs/platform-express": "^11.1.6",
+    "dotenv": "^17.2.3",
+    "reflect-metadata": "^0.2.2",
+    "rxjs": "^7.8.2"
+  },
+  "devDependencies": {
+    "@nestjs/cli": "^11.0.10",
+    "@nestjs/testing": "^11.1.6",
+    "@types/node": "^24.5.2",
+    "typescript": "^5.9.3"
+  }
+}

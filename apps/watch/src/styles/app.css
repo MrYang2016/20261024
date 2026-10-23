@@ -1,0 +1,158 @@
+/* 观看页布局：播放器型单页（画面顶格，信息压条，右侧 AI 抽屉）
+   视觉修订 v2：页面上限 1200 + 左右留白 32；频道名 20/500；辅助信息 14 */
+
+#app {
+  min-height: 100vh;
+}
+
+.watch {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+  max-width: var(--page-max-width);
+  margin: 0 auto;
+  padding: var(--space-8) var(--page-gutter) var(--space-12);
+}
+
+.watch__top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  flex-wrap: wrap;
+}
+
+.watch__identity {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3) var(--space-4);
+  flex-wrap: wrap;
+  min-width: 0;
+}
+
+.watch__title {
+  font-size: var(--font-size-20);
+  line-height: var(--line-height-30);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-1);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 60vw;
+}
+
+.watch__ai-toggle {
+  /* 抽屉展开时同一个开关就是收起入口，所以层级必须高于抽屉（z-index: 20） */
+  position: relative;
+  z-index: 30;
+  padding: 0 var(--space-4);
+  background: transparent;
+  color: var(--color-text-2);
+}
+
+.watch__body {
+  display: flex;
+  gap: var(--space-6);
+  min-width: 0;
+}
+
+.watch__main {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  min-width: 0;
+  flex: 1;
+}
+
+.watch__player-mount {
+  width: 100%;
+  height: 100%;
+}
+
+.watch__notice {
+  font-size: var(--font-size-14);
+  line-height: var(--line-height-22);
+  color: var(--color-warning);
+}
+
+/* AI 抽屉：右侧固定，默认收起；顶部让出信息条，抽屉内容不从开关下面开始 */
+.watch__drawer {
+  position: fixed;
+  top: 0;
+  right: 0;
+  z-index: 20;
+  width: 360px;
+  max-width: 90vw;
+  height: 100%;
+  padding: var(--space-6);
+  padding-block-start: calc(var(--space-8) + var(--control-height) + var(--space-4));
+  background: var(--color-panel);
+  border-left: 1px solid var(--color-border);
+  box-shadow: var(--shadow-panel);
+  transform: translateX(100%);
+  visibility: hidden;
+  transition:
+    transform var(--transition-fast),
+    visibility var(--transition-fast);
+}
+
+.watch__drawer[data-open='true'] {
+  transform: translateX(0);
+  visibility: visible;
+}
+
+.watch__drawer-inner {
+  height: 100%;
+}
+
+.watch__entry {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  max-width: 560px;
+  padding: var(--space-6);
+}
+
+.watch__entry-title {
+  font-size: var(--font-size-20);
+  line-height: var(--line-height-30);
+  font-weight: var(--font-weight-medium);
+}
+
+.watch__entry-desc {
+  font-size: var(--font-size-14);
+  line-height: var(--line-height-22);
+  color: var(--color-text-3);
+}
+
+.watch__entry-form {
+  display: flex;
+  gap: var(--space-3);
+  align-items: flex-end;
+}
+
+.watch__entry-form input {
+  flex: 1;
+  min-width: 0;
+}
+
+.watch__entry-error {
+  font-size: var(--font-size-14);
+  line-height: var(--line-height-22);
+  color: var(--color-danger);
+}
+
+@media (max-width: 720px) {
+  .watch {
+    padding: var(--space-6) var(--space-4) var(--space-8);
+  }
+
+  .watch__title {
+    max-width: 70vw;
+  }
+
+  .watch__entry-form {
+    align-items: stretch;
+    flex-direction: column;
+  }
+}
